@@ -88,7 +88,7 @@ class PixelArtApp:
 
                 # prepare for discovery response.
                 receiver_name = message["name"]
-                outgoing_IP = addr  # this value is returned from socket instance above.
+                outgoing_IP = addr[0]  # this value is returned from socket instance above.
                 outgoing_message = {"type":2, "name":self.name, "IP":self.ip}
                 outgoing_message_as_json = json.dumps(outgoing_message)
                 outgoing_message_as_json_encoded_to_utf8 = outgoing_message_as_json.encode(encoding="utf-8")
