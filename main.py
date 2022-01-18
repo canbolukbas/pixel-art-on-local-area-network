@@ -131,6 +131,11 @@ class PixelArtApp:
             s.close()
 
     def invite(self, collaborator):
+        online_user_names = [user["name"] for user in self.online_users]
+        if collaborator not in online_user_names:
+            print("Sorry, {} is not online.".format(collaborator))
+            return
+
         outgoing_message = {"type":3, "name":self.name}
         outgoing_message_as_json = json.dumps(outgoing_message)
         outgoing_message_as_json_encoded_to_utf8 = outgoing_message_as_json.encode(encoding="utf-8")
@@ -161,9 +166,6 @@ class PixelArtApp:
                 self.print_online_users()
             elif command == "draw":
                 collaborator = input("with whom?: ")
-                if collaborator not in self.online_users.keys():
-                    print("Sorry, {} is not online.".format(collaborator))
-                    continue
                 self.invite(collaborator=collaborator)
             elif command == "exit":
                 break
