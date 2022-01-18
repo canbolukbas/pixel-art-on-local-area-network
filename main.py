@@ -53,6 +53,15 @@ class PixelArtApp:
         if message["type"] == 2:
             if message["IP"] not in self.get_user_ips():
                 self.online_users.append({"ip": message["IP"], "name": message["name"]})
+        if message["type"] == 3:
+            collaborator = message["name"]
+            answer = input("{} sent you an invitation. Would you like to draw with {}? (yes/no)".format(collaborator, collaborator))
+            if answer == "yes":
+                self.send_invitation_response(collaborator=collaborator)
+                # open GUI.
+                print("Drawing session started with {}.".format(collaborator))
+            else:
+                print("Invitation declined.")
 
     def listen_tcp(self):
         # listens the port for possible TCP connections and calls handle_tcp_connection() when necessary.
@@ -148,7 +157,24 @@ class PixelArtApp:
             s.sendall(outgoing_message_as_json_encoded_to_utf8)
         except:
             print("{} is not online".format(collaborator))
-            self.delete_chatter(ip=outgoing_IP, name=collaborator)
+            self.online_users.remove({"ip":outgoing_IP, "name":collaborator})
+        finally:
+            s.close()
+
+    def send_invitation_response(self, collaborator):
+        outgoing_message = {"type":4, "name":self.name}
+        outgoing_message_as_json = json.dumps(outgoing_message)
+        outgoing_message_as_json_encoded_to_utf8 = outgoing_message_as_json.encode(encoding="utf-8")
+        outgoing_IP = self.get_ip_from_name(name=collaborator)
+
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((outgoing_IP, TCP_PORT))
+            s.settimeout(1.0)
+            s.sendall(outgoing_message_as_json_encoded_to_utf8)
+        except:
+            print("{} is not online".format(collaborator))
+            self.online_users.remove({"ip":outgoing_IP, "name":collaborator})
         finally:
             s.close()
 
