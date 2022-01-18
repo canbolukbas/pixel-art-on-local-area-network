@@ -42,7 +42,7 @@ class PixelArtApp:
         message_as_json_string = data.decode(encoding="utf-8")
         message = json.loads(message_as_json_string)
 
-        if message["type"] == "2":
+        if message["type"] == 2:
             if message["IP"] not in self.get_user_ips():
                 self.online_users.append({"ip": message["IP"], "name": message["name"]})
 
@@ -71,7 +71,7 @@ class PixelArtApp:
             message_as_json_string = msg.decode(encoding="utf-8")
             message = json.loads(message_as_json_string)
 
-            if message["type"] == "1":
+            if message["type"] == 1:
                 # skip if discover message comes from itself.
                 if message["IP"] == self.ip:
                     continue
