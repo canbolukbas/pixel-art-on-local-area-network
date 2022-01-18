@@ -15,6 +15,14 @@ class PixelArtApp:
         self.ip = ip
         self.name = name
 
+    # given a 'name', returns IP address of a user.
+    # if 'name' is not in the online users, returns None.
+    def get_ip_from_name(self, name):
+        for user in self.online_users:
+            if user["name"]==name:
+                return user["ip"]
+        return None
+
     # returns IPs of users as a set.
     def get_user_ips(self):
         user_ips = set()
@@ -122,6 +130,23 @@ class PixelArtApp:
         finally:
             s.close()
 
+    def invite(self, collaborator):
+        outgoing_message = {"type":3, "name":self.name}
+        outgoing_message_as_json = json.dumps(outgoing_message)
+        outgoing_message_as_json_encoded_to_utf8 = outgoing_message_as_json.encode(encoding="utf-8")
+        outgoing_IP = self.get_ip_from_name(name=collaborator)
+
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((outgoing_IP, TCP_PORT))
+            s.settimeout(1.0)
+            s.sendall(outgoing_message_as_json_encoded_to_utf8)
+        except:
+            print("{} is not online".format(collaborator))
+            self.delete_chatter(ip=outgoing_IP, name=collaborator)
+        finally:
+            s.close()
+
     def run(self):
         tcp_listener = Thread(target=self.listen_tcp, daemon=True)
         udp_listener = Thread(target=self.get_udp_message, daemon=True)
@@ -131,9 +156,15 @@ class PixelArtApp:
         self.send_discovery_messages()
 
         while True:
-            command = input("What do you want to do? (see_onlines/exit)\n")
+            command = input("What do you want to do? (see_onlines/draw/exit)\n")
             if command == "see_onlines":
                 self.print_online_users()
+            elif command == "draw":
+                collaborator = input("with whom?: ")
+                if collaborator not in self.online_users.keys():
+                    print("Sorry, {} is not online.".format(collaborator))
+                    continue
+                self.invite(collaborator=collaborator)
             elif command == "exit":
                 break
 
