@@ -79,6 +79,11 @@ class PixelArtApp:
                 print("{} is not in online users list. Invitation is not acceptable.".format(collaborator))
                 return
             self.invitors.add((collaborator_ip, collaborator))
+        if message["type"] == 4:
+            collaborator_name = message["name"]
+            print("{} accepted your invitation.".format(collaborator_name))
+            print("Drawing session started with {}.".format(collaborator_name))
+            # open GUI.
 
     def listen_tcp(self):
         # listens the port for possible TCP connections and calls handle_tcp_connection() when necessary.
