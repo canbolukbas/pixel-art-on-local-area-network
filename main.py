@@ -56,8 +56,15 @@ class PixelArtApp:
         invitor_names = [user_name for user_ip, user_name in self.invitors]
         if collaborator_name in invitor_names:
             self.send_invitation_response(collaborator=collaborator_name)
-            # open GUI.
+
+            # check if collaborator is still online.
+            online_user_names = [user["name"] for user in self.online_users]
+            if collaborator_name not in online_user_names:
+                print("{} is not online".format(collaborator_name))
+                return
+
             print("Drawing session started with {}.".format(collaborator_name))
+            # open GUI.
         else:
             print("{} is not in invitors.".format(collaborator_name))
 
