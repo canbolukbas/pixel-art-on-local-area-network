@@ -10,6 +10,7 @@ TCP_PORT = 12345
 class PixelArtApp:
     online_users = []  # [{"ip": "123.942.1.3", "name": "efe"}, ...]
     burst_ID_set = set()  # stores ID of discovery messages
+    invitors = set()  # {("ip", "name")}
 
     def __init__(self, ip, name):
         self.ip = ip
@@ -38,10 +39,27 @@ class PixelArtApp:
             print(user["name"])
         print()
 
+    def print_invitors(self):
+        print("Received Invitations:")
+        for ip, name in self.invitors:
+            print(name)
+        print()
+
     def create_discover_message(self):
         timestamp_integer = int(datetime.timestamp(datetime.now()))
         message = {"type":1, "name":self.name, "IP":self.ip, "ID":timestamp_integer}
         return message
+
+    def accept_invitation(self):
+        collaborator_name = input("Accept invitation of whom? (enter name)\n")
+        
+        invitor_names = [user_name for user_ip, user_name in self.invitors]
+        if collaborator_name in invitor_names:
+            self.send_invitation_response(collaborator=collaborator_name)
+            # open GUI.
+            print("Drawing session started with {}.".format(collaborator_name))
+        else:
+            print("{} is not in invitors.".format(collaborator_name))
 
     def handle_tcp_connection(self, conn):
         with conn:
@@ -55,13 +73,12 @@ class PixelArtApp:
                 self.online_users.append({"ip": message["IP"], "name": message["name"]})
         if message["type"] == 3:
             collaborator = message["name"]
-            answer = input("{} sent you an invitation. Would you like to draw with {}? (yes/no)".format(collaborator, collaborator))
-            if answer == "yes":
-                self.send_invitation_response(collaborator=collaborator)
-                # open GUI.
-                print("Drawing session started with {}.".format(collaborator))
-            else:
-                print("Invitation declined.")
+            print("{} sent you an invitation.".format(collaborator))
+            collaborator_ip = self.get_ip_from_name(collaborator)
+            if collaborator_ip is None:
+                print("{} is not in online users list. Invitation is not acceptable.".format(collaborator))
+                return
+            self.invitors.add((collaborator_ip, collaborator))
 
     def listen_tcp(self):
         # listens the port for possible TCP connections and calls handle_tcp_connection() when necessary.
@@ -187,9 +204,13 @@ class PixelArtApp:
         self.send_discovery_messages()
 
         while True:
-            command = input("What do you want to do? (see_onlines/draw/exit)\n")
+            command = input("What do you want to do? (see_onlines/see_invitations/accept_invitation/draw/exit)\n")
             if command == "see_onlines":
                 self.print_online_users()
+            elif command == "see_invitations":
+                self.print_invitors()
+            elif command == "accept_invitation":
+                self.accept_invitation()
             elif command == "draw":
                 collaborator = input("with whom?: ")
                 self.invite(collaborator=collaborator)
