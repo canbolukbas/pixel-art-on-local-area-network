@@ -40,17 +40,41 @@ class OnlineUsersPage(QtWidgets.QWidget):
         self.go_back_button = QtWidgets.QPushButton("Go Back")
         self.layout.addWidget(self.go_back_button)
 
+
+class InvitationsPage(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QtWidgets.QVBoxLayout(self)
+
+        invitor_names = ["onur", "mehmet"]
+        self.invitor_names_text = QtWidgets.QLabel("\n".join(invitor_names))
+        self.layout.addWidget(self.invitor_names_text)
+
+        self.text = QtWidgets.QLabel("Accept invitation!")
+        self.text_edit = QtWidgets.QLineEdit()
+        self.button = QtWidgets.QPushButton("Accept")
+        self.layout.addWidget(self.text)
+        self.layout.addWidget(self.text_edit)
+        self.layout.addWidget(self.button)
+
+        self.go_back_button = QtWidgets.QPushButton("Go Back")
+        self.layout.addWidget(self.go_back_button)
+
+
 class MyStackedWidget(QtWidgets.QStackedWidget):
     def __init__(self):
         super().__init__()
 
         self.online_users_page = OnlineUsersPage()
+        self.invitations_page = InvitationsPage()
         self.menu_page = MenuPage()
         self.home_page = HomePage()
         self.addWidget(self.home_page)
 
         self.home_page.button.clicked.connect(self.change_widget)
         self.menu_page.see_onlines_button.clicked.connect(self.change_widget)
+        self.menu_page.see_invitations_button.clicked.connect(self.change_widget)
+        self.invitations_page.go_back_button.clicked.connect(self.change_widget)
         self.online_users_page.go_back_button.clicked.connect(self.change_widget)
 
     def change_widget(self):
@@ -60,7 +84,12 @@ class MyStackedWidget(QtWidgets.QStackedWidget):
         elif self.sender() == self.menu_page.see_onlines_button:
             self.addWidget(self.online_users_page)
             self.setCurrentWidget(self.online_users_page)
+        elif self.sender() == self.menu_page.see_invitations_button:
+            self.addWidget(self.invitations_page)
+            self.setCurrentWidget(self.invitations_page)
         elif self.sender() == self.online_users_page.go_back_button:
+            self.setCurrentWidget(self.menu_page)
+        elif self.sender() == self.invitations_page.go_back_button:
             self.setCurrentWidget(self.menu_page)
 
 
