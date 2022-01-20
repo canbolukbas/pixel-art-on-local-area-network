@@ -9,12 +9,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((TARGET_IP, TCP_PORT))
     
     # receive until server closes the connection
-    received_msg = ""
     while True:
         msg = s.recv(PACKET_SIZE)
-        if len(msg) <= 0:
+        if len(msg) == 0:
+            # when connection is closed, prevent receiving empty messages.
             break
-        received_msg += msg.decode("utf-8")
-    
-    print(received_msg)
+        print(msg.decode("utf-8"))
 
