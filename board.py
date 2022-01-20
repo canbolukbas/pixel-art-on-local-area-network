@@ -1,5 +1,6 @@
 from PySide6 import QtCore, QtWidgets, QtGui
-import sys, random
+import sys
+import socket, json
 
 
 class ColorButton(QtWidgets.QPushButton):
@@ -147,6 +148,9 @@ class GameController(QtWidgets.QWidget):
 
 		self.save_image_button = QtWidgets.QPushButton("Save Image", self)
 
+		self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		self.s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
 		self.color_select_bar.button_group.buttonClicked.connect(self.select_color)
 		self.board.cellClicked.connect(self.paint_pixel)
 		self.save_image_button.clicked.connect(self.save_image)
@@ -163,6 +167,7 @@ class GameController(QtWidgets.QWidget):
 	def paint_pixel(self, row, column):
 		brush = QtGui.QBrush(self.selected_color)
 		self.board.item(row,column).setBackground(brush)
+		self.s.sendto(bytes(json.dumps( {"type": 1, "name": "hahah", "ID": 1} ), 'utf-8'), ("255.255.255.255", 12345))
 
 	@QtCore.Slot()
 	def save_image(self, button):
