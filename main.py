@@ -230,10 +230,6 @@ class PixelArtApp:
                 break
 
 def get_my_ip():
-    # for MacOS.
-    # return subprocess.run(["ipconfig", "getifaddr", "en0"], text=True, stdout=subprocess.PIPE).stdout[0:-1]
-
-    # for Ubuntu.
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         s.connect(("8.8.8.8", 80))
