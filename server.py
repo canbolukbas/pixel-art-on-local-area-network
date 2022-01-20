@@ -1,10 +1,11 @@
+import queue
 import socket
 from threading import Thread
 from time import sleep
 
 PACKET_SIZE = 1024
 TCP_PORT = 12345
-OUTGOING_MESSAGES = list()  # To-do: Queue would be better.
+OUTGOING_MESSAGES = queue.Queue()
 CHAT_COMPLETED = False
 
 # returns local IP.
@@ -23,7 +24,7 @@ def chat():
     print("Chat started! (Type exit to exit)")
     while not CHAT_COMPLETED:
         message = input()
-        OUTGOING_MESSAGES.append(message)
+        OUTGOING_MESSAGES.put(message)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # no need to wait socket closures which may take long.
@@ -38,16 +39,13 @@ try:
         chat_io.start()
 
         while True:
-            if len(OUTGOING_MESSAGES)==0:
-                continue
-
-            text = OUTGOING_MESSAGES.pop(0)
+            text = OUTGOING_MESSAGES.get()
             if text == "exit":
                 break
             client_socket.send(bytes(text, "utf-8"))
 
         CHAT_COMPLETED = False
-        OUTGOING_MESSAGES = list()
+        OUTGOING_MESSAGES = queue.Queue()
         client_socket.close()
         print("Connection from {} has been closed!".format(address))
 
