@@ -81,9 +81,9 @@ class ColorSelectBar(QtWidgets.QWidget):
 class Board(QtWidgets.QTableWidget):
 	# Creates the board and initializes it.
 	def __init__(self, parent):
-		row_count = 32
-		column_count = 32
-		super().__init__(row_count, column_count, parent)
+		self.row_count = 32
+		self.column_count = 32
+		super().__init__(self.row_count, self.column_count, parent)
 		
 		# Board is made ready for the game with the code block below.
 		self.fit_into_window()
@@ -109,8 +109,8 @@ class Board(QtWidgets.QTableWidget):
 	# To be able to color board, each cell needs to be given a table widget item.
 	# Empty cells are contain None.
 	def fill(self):
-		for i in range(32):
-			for j in range(32):
+		for i in range(self.row_count):
+			for j in range(self.column_count):
 				self.setItem(i, j, QtWidgets.QTableWidgetItem())
 
 	# Disables the feature that allows users edit the cells through clicking.
@@ -134,49 +134,45 @@ class Board(QtWidgets.QTableWidget):
 		pass
 
 
-class MyWidget(QtWidgets.QWidget):
+class GameController(QtWidgets.QWidget):
 	def __init__(self):
 		super().__init__()
-		self.setFixedSize(800,600)
-
-		# self.save_button = QtWidgets.QPushButton("Save",self)
-		# self.save_button.clicked.connect(self.save_image)
-
-		self.table = Board(self)
-		self.color_select_bar = ColorSelectBar(self)
-		self.selected_color = None
-
-		self.text = QtWidgets.QLabel("", alignment=QtCore.Qt.AlignCenter)
-
-		self.table.cellClicked.connect(self.magic)
-		self.color_select_bar.button_group.buttonClicked.connect(self.magic2)
-
+		self.setFixedSize(900,675)
 		self.layout = QtWidgets.QVBoxLayout(self)
-		self.layout.addWidget(self.table)
-		self.layout.addWidget(self.text)
+
+		self.board = Board(self)
+
+		self.color_select_bar = ColorSelectBar(self)
+		self.selected_color = QtGui.QColor("#FFFFFF")
+
+		self.save_image_button = QtWidgets.QPushButton("Save Image", self)
+
+		self.color_select_bar.button_group.buttonClicked.connect(self.select_color)
+		self.board.cellClicked.connect(self.paint_pixel)
+		self.save_image_button.clicked.connect(self.save_image)
+
+		self.layout.addWidget(self.save_image_button)
+		self.layout.addWidget(self.board)
 		self.layout.addWidget(self.color_select_bar)
 
+	@QtCore.Slot()
+	def select_color(self, button):
+		self.selected_color = button.color
 
 	@QtCore.Slot()
-	def magic(self, row, column):
-		if self.selected_color:
-			brush = QtGui.QBrush(self.selected_color)
-
-			self.table.item(row,column).setBackground(brush)
+	def paint_pixel(self, row, column):
+		brush = QtGui.QBrush(self.selected_color)
+		self.board.item(row,column).setBackground(brush)
 
 	@QtCore.Slot()
-	def magic2(self, button):
-		self.selected_color = self.color_select_bar.button_group.checkedButton().color
-
-	@QtCore.Slot()
-	def save_image(self):
-		self.table.grab().save("test.png")
+	def save_image(self, button):
+		self.board.grab().save("image.png")
 
 
 if __name__ == "__main__":
 	app = QtWidgets.QApplication([])
 
-	widget = MyWidget()
+	widget = GameController()
 	widget.show()
 
 	sys.exit(app.exec())
