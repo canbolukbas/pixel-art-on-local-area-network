@@ -231,9 +231,10 @@ class PixelArtApp:
 
 def get_my_ip():
     # for MacOS.
-    # return subprocess.run(["ipconfig", "getifaddr", "en0"], text=True, stdout=subprocess.PIPE).stdout[0:-1]
+    return subprocess.run(["ipconfig", "getifaddr", "en0"], text=True, stdout=subprocess.PIPE).stdout[0:-1]
 
     # for Ubuntu.
+    '''
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         s.connect(("8.8.8.8", 80))
@@ -241,6 +242,7 @@ def get_my_ip():
     finally:
         s.close()
     return ip_address
+    '''
 
 print("Welcome to Pixel Art!")
 my_ip = get_my_ip()
