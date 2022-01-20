@@ -1,6 +1,6 @@
 from PySide6 import QtCore, QtWidgets, QtGui
 import sys
-import socket, json
+import socket, json, threading
 
 
 class ColorButton(QtWidgets.QPushButton):
@@ -150,6 +150,8 @@ class GameController(QtWidgets.QWidget):
 
 		self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+		self.partner_ip = "172.20.10.3"
+
 
 		self.color_select_bar.button_group.buttonClicked.connect(self.select_color)
 		self.board.cellClicked.connect(self.paint_pixel)
@@ -159,6 +161,23 @@ class GameController(QtWidgets.QWidget):
 		self.layout.addWidget(self.board)
 		self.layout.addWidget(self.color_select_bar)
 
+		self.discover_listener = threading.Thread(target=self.listen_discover, daemon=True)
+		self.discover_listener.start()
+
+	def process_packet(self, address, data):
+		t = eval(data)
+		brush = QtGui.QBrush(self.selected_color)
+		self.board.item(t[0],t[1]).setBackground(brush)
+		print("Done")
+
+	def listen_discover(self):
+		with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+			s.bind(("172.20.10.2", 12345))
+			while True:
+				data, addr = s.recvfrom(1024)
+				ppt = threading.Thread(target=self.process_packet, args=(addr[0], data,), daemon=True)
+				ppt.start()
+			
 	@QtCore.Slot()
 	def select_color(self, button):
 		self.selected_color = button.color
@@ -167,7 +186,7 @@ class GameController(QtWidgets.QWidget):
 	def paint_pixel(self, row, column):
 		brush = QtGui.QBrush(self.selected_color)
 		self.board.item(row,column).setBackground(brush)
-		self.s.sendto(bytes(json.dumps( {"type": 1, "name": "hahah", "ID": 1} ), 'utf-8'), ("255.255.255.255", 12345))
+		self.s.sendto(bytes(str((row, column)), 'utf-8'), (self.partner_ip, 12345))
 
 	@QtCore.Slot()
 	def save_image(self, button):
