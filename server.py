@@ -1,10 +1,11 @@
 import socket
-import queue
 from threading import Thread
+from time import sleep
 
 PACKET_SIZE = 1024
 TCP_PORT = 12345
-OUTGOING_MESSAGES = queue.Queue()
+OUTGOING_MESSAGES = list()  # To-do: Queue would be better.
+CHAT_COMPLETED = False
 
 # returns local IP.
 def get_my_ip():
@@ -19,15 +20,17 @@ def get_my_ip():
 def chat():
     global OUTGOING_MESSAGES  # to be able to update global variable.
     
-    print("Chat started! (Type exit to exit)\n")
-    while True:
+    print("Chat started! (Type exit to exit)")
+    while not CHAT_COMPLETED:
         message = input()
-        OUTGOING_MESSAGES.put(message)
+        OUTGOING_MESSAGES.append(message)
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    my_ip = get_my_ip()
-    s.bind((my_ip, TCP_PORT))
-    s.listen()
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # no need to wait socket closures which may take long.
+my_ip = get_my_ip()
+s.bind((my_ip, TCP_PORT))
+s.listen()
+try:
     while True:
         client_socket, address = s.accept()
         print("Connection from {} has been accomplished!".format(address))
@@ -35,13 +38,20 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         chat_io.start()
 
         while True:
-            if OUTGOING_MESSAGES.empty():
-                # wait for IO
+            if len(OUTGOING_MESSAGES)==0:
                 continue
 
-            text = OUTGOING_MESSAGES.get()
+            text = OUTGOING_MESSAGES.pop(0)
             if text == "exit":
                 break
             client_socket.send(bytes(text, "utf-8"))
-        
+
+        CHAT_COMPLETED = False
+        OUTGOING_MESSAGES = list()
         client_socket.close()
+        print("Connection from {} has been closed!".format(address))
+
+except Exception as e:
+    print(e)
+finally:
+    s.close()
