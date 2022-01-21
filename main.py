@@ -34,8 +34,8 @@ class OnlineUsersPage(QtWidgets.QWidget):
         super().__init__()
         self.layout = QtWidgets.QVBoxLayout(self)
 
-        online_user_names = ["alperen", "can"]
-        self.online_user_names_text = QtWidgets.QLabel("\n".join(online_user_names))
+        self.online_user_names = []
+        self.online_user_names_text = QtWidgets.QLabel("\n".join(self.online_user_names))
         self.layout.addWidget(self.online_user_names_text)
 
         self.text = QtWidgets.QLabel("Send invitation!")
@@ -94,6 +94,9 @@ class MyStackedWidget(QtWidgets.QStackedWidget):
             self.addWidget(self.menu_page)
             self.setCurrentWidget(self.menu_page)
         elif self.sender() == self.menu_page.see_onlines_button:
+            # update online users list.
+            self.online_users_page.online_user_names = self.app.get_online_user_names()
+
             self.addWidget(self.online_users_page)
             self.setCurrentWidget(self.online_users_page)
         elif self.sender() == self.menu_page.see_invitations_button:
@@ -128,6 +131,9 @@ class PixelArtApp:
         for user in self.online_users:
             user_ips.add(user["ip"])
         return user_ips
+
+    def get_online_user_names(self):
+        return [user["name"] for user in self.online_users]
 
     def print_online_users(self):
         print("Online Users:")
@@ -313,6 +319,7 @@ class PixelArtApp:
 
         self.send_discovery_messages()
 
+        '''
         while True:
             command = input("What do you want to do? (see_onlines/see_invitations/accept_invitation/draw/exit)\n")
             if command == "see_onlines":
@@ -326,6 +333,7 @@ class PixelArtApp:
                 self.invite(collaborator=collaborator)
             elif command == "exit":
                 break
+        '''
 
 def get_my_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
