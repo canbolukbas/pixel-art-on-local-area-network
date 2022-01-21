@@ -180,8 +180,8 @@ class GameController(QtWidgets.QWidget):
 		self.layout.addWidget(self.board)
 		self.layout.addWidget(self.color_select_bar)
 
-		self.listen_packets = threading.Thread(target=self.listen_discover, daemon=True)
-		self.listen_packets.start()
+		self.packet_listener = threading.Thread(target=self.listen_packets, daemon=True)
+		self.packet_listener.start()
 
 	def process_packet(self, address, data):
 		t = eval(data)
