@@ -1,6 +1,7 @@
 from PySide6 import QtCore, QtWidgets, QtGui
 import sys
 import socket, json, threading
+from time import sleep
 
 TARGET_IP = "172.20.10.3"
 PACKET_SIZE = 1024
@@ -161,6 +162,11 @@ class GameController(QtWidgets.QWidget):
 
 		self.save_image_button = QtWidgets.QPushButton("Save Image", self)
 
+		# connect to the collaborator and start listening.
+		self.packet_listener = threading.Thread(target=self.listen_packets, daemon=True)
+		self.packet_listener.start()
+
+		# create a socket that the collaborator can listen from.
 		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # no need to wait socket closures which may take long.
 		my_ip = get_my_ip()
@@ -180,9 +186,6 @@ class GameController(QtWidgets.QWidget):
 		self.layout.addWidget(self.board)
 		self.layout.addWidget(self.color_select_bar)
 
-		self.packet_listener = threading.Thread(target=self.listen_packets, daemon=True)
-		self.packet_listener.start()
-
 	def process_packet(self, address, data):
 		t = eval(data)
 		brush = QtGui.QBrush(self.selected_color)
@@ -191,7 +194,16 @@ class GameController(QtWidgets.QWidget):
 
 	def listen_packets(self):
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-			s.connect((TARGET_IP, TCP_PORT))
+			# try to connect to the collaborator.
+			while True:
+				try:
+					s.connect((TARGET_IP, TCP_PORT))
+					break
+				except Exception as e:
+					print(e)
+					sleep(0.1)
+
+			# start listening and process each incoming packet within a seperate thread.
 			while True:
 				data = s.recv(PACKET_SIZE)
 				ppt = threading.Thread(target=self.process_packet, args=(TARGET_IP, data,), daemon=True)
