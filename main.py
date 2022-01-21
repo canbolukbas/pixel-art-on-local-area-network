@@ -34,8 +34,7 @@ class OnlineUsersPage(QtWidgets.QWidget):
         super().__init__()
         self.layout = QtWidgets.QVBoxLayout(self)
 
-        self.online_user_names = []
-        self.online_user_names_text = QtWidgets.QLabel("\n".join(self.online_user_names))
+        self.online_user_names_text = QtWidgets.QLabel("")
         self.layout.addWidget(self.online_user_names_text)
 
         self.text = QtWidgets.QLabel("Send invitation!")
@@ -47,6 +46,9 @@ class OnlineUsersPage(QtWidgets.QWidget):
 
         self.go_back_button = QtWidgets.QPushButton("Go Back")
         self.layout.addWidget(self.go_back_button)
+
+    def update(self, online_users):
+        self.online_user_names_text = QtWidgets.QLabel("\n".join(online_users))
 
 
 class InvitationsPage(QtWidgets.QWidget):
@@ -95,7 +97,7 @@ class MyStackedWidget(QtWidgets.QStackedWidget):
             self.setCurrentWidget(self.menu_page)
         elif self.sender() == self.menu_page.see_onlines_button:
             # update online users list.
-            self.online_users_page.online_user_names = self.app.get_online_user_names()
+            self.online_users_page.update(online_users=self.app.get_online_user_names())
 
             self.addWidget(self.online_users_page)
             self.setCurrentWidget(self.online_users_page)
