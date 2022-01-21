@@ -206,6 +206,9 @@ class GameController(QtWidgets.QWidget):
 			# start listening and process each incoming packet within a seperate thread.
 			while True:
 				data = s.recv(PACKET_SIZE)
+				if len(data) == 0:
+					# when connection is closed, prevent receiving empty messages.
+					break
 				ppt = threading.Thread(target=self.process_packet, args=(TARGET_IP, data,), daemon=True)
 				ppt.start()
 			
