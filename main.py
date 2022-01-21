@@ -1,11 +1,114 @@
-import subprocess
 from threading import Thread
 import json
 import socket
 from datetime import datetime
+import sys
+from PySide6 import QtCore, QtWidgets, QtGui
 
 UDP_PORT = 12345
 TCP_PORT = 12345
+
+
+class HomePage(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.text = QtWidgets.QLabel("Welcome to Pixel Art on LAN! What is your name?", alignment=QtCore.Qt.AlignCenter)
+        self.text_edit = QtWidgets.QTextEdit()
+        self.button = QtWidgets.QPushButton("Continue")
+        self.layout.addWidget(self.text)
+        self.layout.addWidget(self.text_edit)
+        self.layout.addWidget(self.button)
+
+class MenuPage(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.see_onlines_button = QtWidgets.QPushButton("See who else is online!")
+        self.see_invitations_button = QtWidgets.QPushButton("Invitation Inbox")
+        self.layout.addWidget(self.see_onlines_button)
+        self.layout.addWidget(self.see_invitations_button)
+
+class OnlineUsersPage(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QtWidgets.QVBoxLayout(self)
+
+        self.online_user_names_text = QtWidgets.QLabel("")
+        self.layout.addWidget(self.online_user_names_text)
+
+        self.text = QtWidgets.QLabel("Send invitation!")
+        self.text_edit = QtWidgets.QLineEdit()
+        self.button = QtWidgets.QPushButton("Send")
+        self.layout.addWidget(self.text)
+        self.layout.addWidget(self.text_edit)
+        self.layout.addWidget(self.button)
+
+        self.go_back_button = QtWidgets.QPushButton("Go Back")
+        self.layout.addWidget(self.go_back_button)
+
+    def update(self, online_users):
+        self.online_user_names_text.setText("\n".join(online_users))
+
+
+class InvitationsPage(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QtWidgets.QVBoxLayout(self)
+
+        invitor_names = ["onur", "mehmet"]
+        self.invitor_names_text = QtWidgets.QLabel("\n".join(invitor_names))
+        self.layout.addWidget(self.invitor_names_text)
+
+        self.text = QtWidgets.QLabel("Accept invitation!")
+        self.text_edit = QtWidgets.QLineEdit()
+        self.button = QtWidgets.QPushButton("Accept")
+        self.layout.addWidget(self.text)
+        self.layout.addWidget(self.text_edit)
+        self.layout.addWidget(self.button)
+
+        self.go_back_button = QtWidgets.QPushButton("Go Back")
+        self.layout.addWidget(self.go_back_button)
+
+
+class MyStackedWidget(QtWidgets.QStackedWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.online_users_page = OnlineUsersPage()
+        self.invitations_page = InvitationsPage()
+        self.menu_page = MenuPage()
+        self.home_page = HomePage()
+        self.addWidget(self.home_page)
+
+        self.home_page.button.clicked.connect(self.change_widget)
+        self.menu_page.see_onlines_button.clicked.connect(self.change_widget)
+        self.menu_page.see_invitations_button.clicked.connect(self.change_widget)
+        self.invitations_page.go_back_button.clicked.connect(self.change_widget)
+        self.online_users_page.go_back_button.clicked.connect(self.change_widget)
+
+    def change_widget(self):
+        if self.sender() == self.home_page.button:
+            # initialize app
+            self.app = PixelArtApp(ip=get_my_ip(), name=self.home_page.text_edit.toPlainText())
+            self.app.run()
+
+            self.addWidget(self.menu_page)
+            self.setCurrentWidget(self.menu_page)
+        elif self.sender() == self.menu_page.see_onlines_button:
+            # update online users list.
+            self.online_users_page.update(online_users=self.app.get_online_user_names())
+
+            self.addWidget(self.online_users_page)
+            self.setCurrentWidget(self.online_users_page)
+        elif self.sender() == self.menu_page.see_invitations_button:
+            self.addWidget(self.invitations_page)
+            self.setCurrentWidget(self.invitations_page)
+        elif self.sender() == self.online_users_page.go_back_button:
+            self.setCurrentWidget(self.menu_page)
+        elif self.sender() == self.invitations_page.go_back_button:
+            self.setCurrentWidget(self.menu_page)
+
 
 class PixelArtApp:
     online_users = []  # [{"ip": "123.942.1.3", "name": "efe"}, ...]
@@ -30,6 +133,9 @@ class PixelArtApp:
         for user in self.online_users:
             user_ips.add(user["ip"])
         return user_ips
+
+    def get_online_user_names(self):
+        return [user["name"] for user in self.online_users]
 
     def print_online_users(self):
         print("Online Users:")
@@ -215,6 +321,7 @@ class PixelArtApp:
 
         self.send_discovery_messages()
 
+        '''
         while True:
             command = input("What do you want to do? (see_onlines/see_invitations/accept_invitation/draw/exit)\n")
             if command == "see_onlines":
@@ -228,6 +335,7 @@ class PixelArtApp:
                 self.invite(collaborator=collaborator)
             elif command == "exit":
                 break
+        '''
 
 def get_my_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -238,10 +346,12 @@ def get_my_ip():
         s.close()
     return ip_address
 
-print("Welcome to Pixel Art!")
-my_ip = get_my_ip()
-print("Your IP is: {}".format(my_ip))
-name = input("Please tell me your name: ")
 
-app = PixelArtApp(ip=my_ip, name=name)
-app.run()
+if __name__ == "__main__":
+    app = QtWidgets.QApplication([])
+
+    widget = MyStackedWidget()
+    widget.resize(800, 600)
+    widget.show()
+
+    sys.exit(app.exec())
