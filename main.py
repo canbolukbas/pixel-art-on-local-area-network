@@ -48,7 +48,7 @@ class OnlineUsersPage(QtWidgets.QWidget):
         self.layout.addWidget(self.go_back_button)
 
     def update(self, online_users):
-        self.online_user_names_text = QtWidgets.QLabel("\n".join(online_users))
+        self.online_user_names_text.setText("\n".join(online_users))
 
 
 class InvitationsPage(QtWidgets.QWidget):
