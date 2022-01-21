@@ -1,7 +1,21 @@
 from PySide6 import QtCore, QtWidgets, QtGui
 import sys
 import socket, json, threading
+from time import sleep
 
+TARGET_IP = "172.20.10.3"
+PACKET_SIZE = 1024
+TCP_PORT = 12345
+
+# returns local IP.
+def get_my_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        ip_address = s.getsockname()[0]
+    finally:
+        s.close()
+    return ip_address
 
 class ColorButton(QtWidgets.QPushButton):
 	def __init__(self, parent, color):
@@ -148,10 +162,21 @@ class GameController(QtWidgets.QWidget):
 
 		self.save_image_button = QtWidgets.QPushButton("Save Image", self)
 
-		self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		self.s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-		self.partner_ip = "172.20.10.3"
+		# connect to the collaborator and start listening.
+		self.packet_listener = threading.Thread(target=self.listen_packets, daemon=True)
+		self.packet_listener.start()
 
+		# create a socket that the collaborator can listen from.
+		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # no need to wait socket closures which may take long.
+		my_ip = get_my_ip()
+		self.s.bind((my_ip, TCP_PORT))
+		self.s.listen()
+		try:
+			self.client_socket, address = self.s.accept()
+			print("Connection from {} has been accomplished!".format(address))
+		except Exception as e:
+			print(e)
 
 		self.color_select_bar.button_group.buttonClicked.connect(self.select_color)
 		self.board.cellClicked.connect(self.paint_pixel)
@@ -161,22 +186,31 @@ class GameController(QtWidgets.QWidget):
 		self.layout.addWidget(self.board)
 		self.layout.addWidget(self.color_select_bar)
 
-		self.discover_listener = threading.Thread(target=self.listen_discover, daemon=True)
-		self.discover_listener.start()
-
 	def process_packet(self, address, data):
 		t = eval(data)
 		brush = QtGui.QBrush(self.selected_color)
 		self.board.item(t[0],t[1]).setBackground(brush)
 		print("Done")
 
-	def listen_discover(self):
-		with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-			s.bind(("172.20.10.2", 12345))
-			while True:
-				data, addr = s.recvfrom(1024)
-				ppt = threading.Thread(target=self.process_packet, args=(addr[0], data,), daemon=True)
-				ppt.start()
+	def listen_packets(self):
+		while True:
+			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+				# try to connect to the collaborator.
+				try:
+					s.connect((TARGET_IP, TCP_PORT))
+				except Exception as e:
+					print(e)
+					sleep(1)
+					continue
+
+				# start listening.
+				while True:
+					data = s.recv(PACKET_SIZE)
+					if len(data) == 0:
+						# when connection is closed, prevent receiving empty messages.
+						break
+					ppt = threading.Thread(target=self.process_packet, args=(TARGET_IP, data,), daemon=True)
+					ppt.start()
 			
 	@QtCore.Slot()
 	def select_color(self, button):
@@ -186,7 +220,7 @@ class GameController(QtWidgets.QWidget):
 	def paint_pixel(self, row, column):
 		brush = QtGui.QBrush(self.selected_color)
 		self.board.item(row,column).setBackground(brush)
-		self.s.sendto(bytes(str((row, column)), 'utf-8'), (self.partner_ip, 12345))
+		self.client_socket.send(bytes(str((row, column)), 'utf-8'))
 
 	@QtCore.Slot()
 	def save_image(self, button):
