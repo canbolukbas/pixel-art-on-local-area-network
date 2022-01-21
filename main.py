@@ -1,4 +1,3 @@
-import subprocess
 from threading import Thread
 import json
 import socket
