@@ -193,24 +193,24 @@ class GameController(QtWidgets.QWidget):
 		print("Done")
 
 	def listen_packets(self):
-		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-			# try to connect to the collaborator.
-			while True:
+		while True:
+			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+				# try to connect to the collaborator.
 				try:
 					s.connect((TARGET_IP, TCP_PORT))
-					break
 				except Exception as e:
 					print(e)
 					sleep(1)
+					continue
 
-			# start listening and process each incoming packet within a seperate thread.
-			while True:
-				data = s.recv(PACKET_SIZE)
-				if len(data) == 0:
-					# when connection is closed, prevent receiving empty messages.
-					break
-				ppt = threading.Thread(target=self.process_packet, args=(TARGET_IP, data,), daemon=True)
-				ppt.start()
+				# start listening.
+				while True:
+					data = s.recv(PACKET_SIZE)
+					if len(data) == 0:
+						# when connection is closed, prevent receiving empty messages.
+						break
+					ppt = threading.Thread(target=self.process_packet, args=(TARGET_IP, data,), daemon=True)
+					ppt.start()
 			
 	@QtCore.Slot()
 	def select_color(self, button):
