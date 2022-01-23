@@ -18,11 +18,9 @@ class Pixtura(QtWidgets.QStackedWidget):
 	def __init__(self):
 		super().__init__()
 
-		self.udp_broadcast_listener = threading.Thread(target=self.listen_udp_broadcast, daemon=True)
-		self.udp_broadcast_listener.start()
+		self.udp_broadcast_listener = None
 
-		self.tcp_listener = threading.Thread(target=self.listen_tcp, daemon=True)
-		self.tcp_listener.start()
+		self.tcp_listener = None
 
 		self.setFixedSize(600,600)
 		self.setWindowTitle("Pixtura")
@@ -180,9 +178,10 @@ class Pixtura(QtWidgets.QStackedWidget):
 						self.in_game_with = receiver_IP_address
 						self.setCurrentWidget(self.gameboard)
 
+
 	def send_pixel(self, row, column):
 		color_code = self.gameboard.selected_color
-		message = {"type":4, "row":row, "column":column, "color_code":color_code}
+		message = json.dumps({"type":4, "row":row, "column":column, "color_code":color_code}).encode('utf-8')
 		with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 			s.sendto(message, (self.game_partner, PORT_NUMBER))
 
@@ -191,6 +190,13 @@ class Pixtura(QtWidgets.QStackedWidget):
 	def join(self):
 		global user_name
 		user_name = self.welcome_page.user_name_input_field.text()
+		
+		self.udp_broadcast_listener = threading.Thread(target=self.listen_udp_broadcast, daemon=True)
+		self.udp_broadcast_listener.start()
+
+		self.tcp_listener = threading.Thread(target=self.listen_tcp, daemon=True)
+		self.tcp_listener.start()
+		
 		self.show_main_menu()
 
 
