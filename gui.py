@@ -79,7 +79,7 @@ class Pixtura(QtWidgets.QStackedWidget):
 					online_users[sender_IP_address]["is_inviter"] = True
 				elif message_type == 3 and online_users[sender_IP_address]["is_invitee"] and not self.in_game:
 					self.in_game = True
-					self.in_game_with = sender_IP_address
+					self.game_partner = sender_IP_address
 					self.setCurrentWidget(self.gameboard)
 				elif message_type == 4 and self.in_game and self.game_partner == sender_IP_address:
 					cell_row = message["row"]
@@ -175,7 +175,7 @@ class Pixtura(QtWidgets.QStackedWidget):
 						online_users[receiver_IP_address]["is_invitee"] = True
 					elif message_type == 3:
 						self.in_game = True
-						self.in_game_with = receiver_IP_address
+						self.game_partner = receiver_IP_address
 						self.setCurrentWidget(self.gameboard)
 
 
