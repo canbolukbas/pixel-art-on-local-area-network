@@ -47,16 +47,9 @@ class Pixtura(QtWidgets.QStackedWidget):
 		self.in_game = False
 		self.game_partner = None
 
-		self.welcome_page.join_button.clicked.connect(self.test)
+		self.welcome_page.join_button.clicked.connect(self.join)
 		self.online_users_page.send_invitation_button.clicked.connect(self.send_invitation)
 		self.invitations_inbox_page.accept_invitation_button.clicked.connect(self.send_invitation)
-
-	def test(self):
-		self.in_game = True
-		self.in_game_with = "123"
-		self.gameboard = gameboard.GameBoard()
-		self.addWidget(self.gameboard)
-		self.setCurrentWidget(self.gameboard)
 
 
 	def process_packet(self, is_udp, data, sender_IP_address):
