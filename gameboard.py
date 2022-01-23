@@ -1,11 +1,6 @@
 from PySide6 import QtCore, QtWidgets, QtGui
 import sys
-import socket, json, threading
-from time import sleep
 
-TARGET_IP = ""
-PACKET_SIZE = 1024
-TCP_PORT = 12347
 
 class ColorButton(QtWidgets.QPushButton):
 	def __init__(self, parent, color):
@@ -140,9 +135,9 @@ class Board(QtWidgets.QTableWidget):
 
 
 class GameBoard(QtWidgets.QWidget):
-	def __init__(self, parent, target_IP):
+	def __init__(self, parent=None):
 		super().__init__(parent)
-		TARGET_IP = target_IP
+
 		self.setFixedSize(600,600)
 		self.layout = QtWidgets.QVBoxLayout(self)
 
@@ -160,32 +155,6 @@ class GameBoard(QtWidgets.QWidget):
 		self.layout.addWidget(self.save_image_button)
 		self.layout.addWidget(self.board)
 		self.layout.addWidget(self.color_select_bar)
-
-	def process_packet(self, address, data):
-		t = eval(data)
-		brush = QtGui.QBrush(self.selected_color)
-		self.board.item(t[0],t[1]).setBackground(brush)
-		print("Done")
-
-	def listen_packets(self):
-		while True:
-			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-				# try to connect to the collaborator.
-				try:
-					s.connect((TARGET_IP, TCP_PORT))
-				except Exception as e:
-					print(e)
-					sleep(1)
-					continue
-
-				# start listening.
-				while True:
-					data = s.recv(PACKET_SIZE)
-					if len(data) == 0:
-						# when connection is closed, prevent receiving empty messages.
-						break
-					ppt = threading.Thread(target=self.process_packet, args=(TARGET_IP, data,), daemon=True)
-					ppt.start()
 			
 	@QtCore.Slot()
 	def select_color(self, button):
@@ -195,7 +164,6 @@ class GameBoard(QtWidgets.QWidget):
 	def paint_pixel(self, row, column):
 		brush = QtGui.QBrush(self.selected_color)
 		self.board.item(row,column).setBackground(brush)
-		# self.client_socket.send(bytes(str((row, column)), 'utf-8'))
 
 	@QtCore.Slot()
 	def save_image(self, button):
