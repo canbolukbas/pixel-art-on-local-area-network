@@ -67,7 +67,7 @@ class Pixtura(QtWidgets.QStackedWidget):
 					sender_name = message["name"]
 					if sender_name == user_name:
 						pass
-					elif online_users.get(sender_IP_address, False):
+					elif not online_users.get(sender_IP_address):
 						online_users[sender_IP_address] = {"IP":sender_IP_address, "name":sender_name, "is_invitee":False, "is_inviter":False}
 						self.send_discover_response(sender_IP_address)
 				elif message_type == 1:
