@@ -148,7 +148,6 @@ class Pixtura(QtWidgets.QStackedWidget):
 
 	def send_invitation(self):
 		sender = self.sender()
-
 		global PORT_NUMBER
 		if sender == self.online_users_page.send_invitation_button:
 			selected_user = self.online_users_page.select_invitee.currentData()
@@ -172,6 +171,9 @@ class Pixtura(QtWidgets.QStackedWidget):
 				else:
 					if message_type == 2:
 						online_users[receiver_IP_address]["is_invitee"] = True
+
+	def send_pixel(self):
+		pass
 
 
 	@QtCore.Slot()
