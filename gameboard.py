@@ -135,8 +135,8 @@ class Board(QtWidgets.QTableWidget):
 
 
 class GameBoard(QtWidgets.QWidget):
-	def __init__(self, parent=None):
-		super().__init__(parent)
+	def __init__(self):
+		super().__init__()
 
 		self.setFixedSize(600,600)
 		self.layout = QtWidgets.QVBoxLayout(self)
