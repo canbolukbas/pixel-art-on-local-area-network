@@ -67,7 +67,7 @@ class Pixtura(QtWidgets.QStackedWidget):
 					sender_name = message["name"]
 					if sender_name == user_name:
 						pass
-					else:
+					elif online_users.get(sender_IP_address, False):
 						online_users[sender_IP_address] = {"IP":sender_IP_address, "name":sender_name, "is_invitee":False, "is_inviter":False}
 						self.send_discover_response(sender_IP_address)
 				elif message_type == 1:
@@ -152,8 +152,10 @@ class Pixtura(QtWidgets.QStackedWidget):
 		global PORT_NUMBER
 		if sender == self.online_users_page.send_invitation_button:
 			selected_user = self.online_users_page.select_invitee.currentData()
+			message_type = 2
 		elif sender == self.invitations_inbox_page.accept_invitation_button:
 			selected_user = self.invitations_inbox_page.select_inviter.currentData()
+			message_type = 3
 		else:
 			selected_user = None
 
