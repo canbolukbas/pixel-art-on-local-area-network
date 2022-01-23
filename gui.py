@@ -22,10 +22,6 @@ class Pixtura(QtWidgets.QStackedWidget):
 		self.tcp_listener = threading.Thread(target=self.listen_tcp, daemon=True)
 		self.tcp_listener.start()
 
-		self.discoverer = threading.Thread(target=self.discover, daemon=True)
-		self.discoverer.start()
-		self.discoverer.join()
-
 		self.setFixedSize(600,600)
 		self.setWindowTitle("Pixtura")
 
@@ -49,6 +45,7 @@ class Pixtura(QtWidgets.QStackedWidget):
 		self.in_game = False
 		self.game_partner = None
 
+		self.welcome_page.join_button.clicked.connect(self.discover)
 		self.online_users_page.send_invitation_button.clicked.connect(self.send_invitation(message_type=2))
 		self.invitations_inbox_page.accept_invitation_button.clicked.connect(self.send_invitation(message_type=3))
 
