@@ -53,6 +53,7 @@ class Pixtura(QtWidgets.QStackedWidget):
 		self.welcome_page.join_button.clicked.connect(self.discover)
 		self.online_users_page.send_invitation_button.clicked.connect(self.send_invitation)
 		self.invitations_inbox_page.accept_invitation_button.clicked.connect(self.send_invitation)
+		self.gameboard.board.cellClicked.connect(self.send_pixel)
 
 
 	def process_packet(self, is_udp, data, sender_IP_address):
@@ -177,8 +178,11 @@ class Pixtura(QtWidgets.QStackedWidget):
 						self.in_game_with = receiver_IP_address
 						self.setCurrentWidget(self.gameboard)
 
-	def send_pixel(self):
-		pass
+	def send_pixel(self, row, column, color_code):
+		color_code = self.gameboard.selected_color
+		message = {"type":4, "row":row, "column":column, "color_code":color_code}
+		with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+			s.sendto(message, (self.game_partner, PORT_NUMBER))
 
 
 	@QtCore.Slot()
