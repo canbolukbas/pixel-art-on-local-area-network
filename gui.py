@@ -52,13 +52,6 @@ class Pixtura(QtWidgets.QStackedWidget):
 		self.invitations_inbox_page.accept_invitation_button.clicked.connect(self.send_invitation(message_type=3))
 
 
-	def update_ui(self):
-		self.online_users_page.online_users_list.update()
-		self.online_users_page.select_invitee.update()
-		self.invitations_inbox_page.inviter_users_list.update()
-		self.invitations_inbox_page.select_inviter.update()
-
-
 	def process_packet(self, is_udp, data, sender_IP_address):
 		global user_name, MAXIMUM_PACKET_LENGTH
 
@@ -74,17 +67,14 @@ class Pixtura(QtWidgets.QStackedWidget):
 					sender_name = message["name"]
 					if sender_name == user_name:
 						pass
-					elif online_users.get(sender_IP_address, False): 
+					else:
 						online_users[sender_IP_address] = {"IP":sender_IP_address, "name":sender_name, "is_invitee":False, "is_inviter":False}
 						self.send_discover_response(sender_IP_address)
-						self.update_ui()
 				elif message_type == 1:
 					sender_name = message["name"]
 					online_users[sender_IP_address] = {"IP":sender_IP_address, "name":sender_name, "is_invitee":False, "is_inviter":False}
-					self.update_ui()
 				elif message_type == 2:
 					online_users[sender_IP_address]["is_inviter"] = True
-					self.update_ui()
 				elif message_type == 3 and online_users[sender_IP_address]["is_invitee"] and not self.in_game:
 					self.in_game = True
 					self.in_game_with = sender_IP_address
