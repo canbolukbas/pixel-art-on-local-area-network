@@ -48,8 +48,8 @@ class Pixtura(QtWidgets.QStackedWidget):
 		self.game_partner = None
 
 		self.welcome_page.join_button.clicked.connect(self.discover)
-		self.online_users_page.send_invitation_button.clicked.connect(self.send_invitation(message_type=2))
-		self.invitations_inbox_page.accept_invitation_button.clicked.connect(self.send_invitation(message_type=3))
+		self.online_users_page.send_invitation_button.clicked.connect(self.send_invitation)
+		self.invitations_inbox_page.accept_invitation_button.clicked.connect(self.send_invitation)
 
 
 	def update_ui(self):
@@ -156,12 +156,14 @@ class Pixtura(QtWidgets.QStackedWidget):
 					s.sendto(message, (UDP_BROADCAST_IP, PORT_NUMBER))
 
 
-	def send_invitation(self, message_type):
+	def send_invitation(self):
+		sender = self.sender()
+
 		global PORT_NUMBER
-		if message_type == 2:
-			selected_user = self.online_users_page.select_invitee.currentData(QtCore.Qt.UserRole)
-		elif message_type == 3:
-			selected_user = self.invitations_inbox_page.select_inviter.currentData(QtCore.Qt.UserRole)
+		if sender == self.online_users_page.send_invitation_button:
+			selected_user = self.online_users_page.select_invitee.currentData()
+		elif sender == self.invitations_inbox_page.accept_invitation_button:
+			selected_user = self.invitations_inbox_page.select_inviter.currentData()
 		else:
 			selected_user = None
 
@@ -184,7 +186,6 @@ class Pixtura(QtWidgets.QStackedWidget):
 	def join(self):
 		global user_name
 		user_name = self.welcome_page.user_name_input_field.text()
-
 		self.show_main_menu()
 
 
