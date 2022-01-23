@@ -180,7 +180,7 @@ class Pixtura(QtWidgets.QStackedWidget):
 
 
 	def send_pixel(self, row, column):
-		color_code = self.gameboard.board.selected_color.name()
+		color_code = self.gameboard.selected_color.name()
 		message = json.dumps({"type":4, "row":row, "column":column, "color_code":color_code}).encode('utf-8')
 		with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 			s.sendto(message, (self.game_partner, PORT_NUMBER))
