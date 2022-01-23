@@ -87,6 +87,8 @@ class Pixtura(QtWidgets.QStackedWidget):
 					cell_row = message["row"]
 					cell_column = message["column"]
 					cell_color = message["color_code"]
+					brush = QtGui.QBrush(cell_color)
+					self.gameboard.board.item(cell_row, cell_column).setBackground(brush)
 			except Exception as e:
 				print(str(e))
 
@@ -178,7 +180,7 @@ class Pixtura(QtWidgets.QStackedWidget):
 						self.in_game_with = receiver_IP_address
 						self.setCurrentWidget(self.gameboard)
 
-	def send_pixel(self, row, column, color_code):
+	def send_pixel(self, row, column):
 		color_code = self.gameboard.selected_color
 		message = {"type":4, "row":row, "column":column, "color_code":color_code}
 		with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
