@@ -1,8 +1,10 @@
 from PySide6 import QtCore, QtWidgets, QtGui
 import sys, threading, socket, json
 import gameboard
+from sys import platform
 
-UDP_BROADCAST_IP = "255.255.255.255"
+
+UDP_BROADCAST_IP = ""  # this depends on different OS.
 PORT_NUMBER = 12345
 MAXIMUM_PACKET_LENGTH = 256
 
@@ -133,8 +135,15 @@ class Pixtura(QtWidgets.QStackedWidget):
 		message = json.dumps({"type":0, "name":user_name}).encode('utf-8')
 		with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 			s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+			if platform == "darwin":
+				s.bind(('', 0))
+
 			for i in range(20):
-				s.sendto(message, (UDP_BROADCAST_IP, PORT_NUMBER))
+				if platform == "darwin":
+					s.sendto(message, ("<broadcast>", PORT_NUMBER))
+				else:
+					s.sendto(message, (UDP_BROADCAST_IP, PORT_NUMBER))
 
 
 	def send_invitation(self, message_type):
@@ -363,5 +372,7 @@ if __name__ == "__main__":
 
 	widget = Pixtura()
 	widget.show()
+
+	UDP_BROADCAST_IP = "" if platform == "darwin" else "255.255.255.255"
 
 	sys.exit(app.exec())
