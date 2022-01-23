@@ -180,6 +180,7 @@ class Pixtura(QtWidgets.QStackedWidget):
 	def join(self):
 		global user_name
 		user_name = self.welcome_page.user_name_input_field.text()
+		self.discover()
 		self.show_main_menu()
 
 
