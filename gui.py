@@ -47,7 +47,7 @@ class Pixtura(QtWidgets.QStackedWidget):
 		self.in_game = False
 		self.game_partner = None
 
-		self.welcome_page.join_button.clicked.connect(self.join)
+		self.welcome_page.join_button.clicked.connect(self.discover)
 		self.online_users_page.send_invitation_button.clicked.connect(self.send_invitation)
 		self.invitations_inbox_page.accept_invitation_button.clicked.connect(self.send_invitation)
 
@@ -180,7 +180,6 @@ class Pixtura(QtWidgets.QStackedWidget):
 	def join(self):
 		global user_name
 		user_name = self.welcome_page.user_name_input_field.text()
-		self.discover()
 		self.show_main_menu()
 
 
